@@ -1,0 +1,29 @@
+#create channel and join channel
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer channel create -o orderer1.orderer:7050 -c mychannel -f /admin/data/channel.tx --tls --cafile /admin/msp/ordererAdmin/tlscacerts/tlsca.orderer-cert.pem
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer channel join -b  ./mychannel.block
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer2.org1:7051 peer channel join -b  ./mychannel.block
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer1.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer channel join -b  ./mychannel.block
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer2.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer channel join -b  ./mychannel.block
+
+#install chaincode
+
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/example02/cmd
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer2.org1:7051 peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/example02/cmd
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer1.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/example02/cmd
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer2.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/example02/cmd
+
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode list  --installed
+
+#instantiate chaincode
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode instantiate -o orderer1.orderer:7050 -C mychannel -n mycc -v 1.0 -c '{"Args":["init","a","1000","b","2000"]}' -P "OR ('Org1MSP.member','Org2MSP.member')" --tls --cafile /admin/msp/ordererAdmin/tlscacerts/tlsca.orderer-cert.pem
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode list  --instantiated -C mychannel
+
+#query and invoke
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin  CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode query -C mychannel -n mycc -c '{"Args":["query","a"]}'
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin CORE_PEER_ADDRESS=peer2.org1:7051 peer chaincode query -C mychannel -n mycc -c '{"Args":["query","a"]}'
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer1.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer chaincode query -C mychannel -n mycc -c '{"Args":["query","a"]}'
+CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org2Admin CORE_PEER_ADDRESS=peer2.org2:7051 CORE_PEER_TLS_ROOTCERT_FILE=/admin/msp/org2Admin/tls/ca.crt peer chaincode query -C mychannel -n mycc -c '{"Args":["query","a"]}'
+
+CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_MSPCONFIGPATH=/admin/msp/org1Admin  CORE_PEER_ADDRESS=peer1.org1:7051 peer chaincode invoke -o orderer1.orderer:7050 -C mychannel -n mycc  -c '{"Args":["invoke","a","b","10"]}'  --tls --cafile /admin/msp/ordererAdmin/tlscacerts/tlsca.orderer-cert.pem
+
+
